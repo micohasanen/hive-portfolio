@@ -41,7 +41,7 @@ agenda.define('fetch latest prices', async () => {
 
 async function init() {
   await agenda.start();
-  await agenda.every('1 minutes', 'fetch latest prices');
+  await agenda.every('1 hours', 'fetch latest prices');
 
   console.log('✨ Agenda Inited');
 }
