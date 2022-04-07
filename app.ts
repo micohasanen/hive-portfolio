@@ -12,6 +12,7 @@ import { init } from './providers/Agenda';
 import assetRouter from './routes/assets';
 import tradesRouter from './routes/trades';
 import holdingsRouter from './routes/holdings';
+import treasuryRouter from './routes/treasury';
 
 const PORT = process.env.PORT || 5000;
 
@@ -31,6 +32,7 @@ app.get(`/${config.apiPrefix}`, (req: Request, res: Response) => {
 app.use(`/${config.apiPrefix}/assets`, assetRouter);
 app.use(`/${config.apiPrefix}/trades`, tradesRouter);
 app.use(`/${config.apiPrefix}/holdings`, holdingsRouter);
+app.use(`/${config.apiPrefix}/treasury`, treasuryRouter);
 
 app.listen(PORT, () => {
   init();

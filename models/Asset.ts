@@ -26,6 +26,7 @@ const AssetSchema = new Schema<IAsset>({
     type: Boolean,
     default: false,
   },
+  icon: String,
 }, { timestamps: true });
 
 export default model<IAsset>('Asset', AssetSchema);

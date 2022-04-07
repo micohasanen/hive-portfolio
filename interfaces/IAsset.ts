@@ -12,6 +12,7 @@ interface Asset {
   change24h?: number;
   createdAt?: Date;
   updatedAt: Date;
+  icon?: string;
 }
 
 export default Asset;

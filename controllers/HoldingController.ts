@@ -143,8 +143,6 @@ async function logTrade(trade:ITrade): Promise<any> {
 
   await holding.save();
 
-  sync(holding.assetId);
-
   return Promise.resolve(holding);
 }
 

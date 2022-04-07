@@ -41,8 +41,6 @@ router.get('/', async (req: Request, res: Response) => {
     holdings.forEach((holding:any) => {
       if (!holding.asset) return;
 
-      holding.currentValue = holding.quantity * holding.asset.currentPrice;
-
       if (holding.asset.yield) {
         holding.yields = calcYields(holding.currentValue, holding.asset.yield);
       }
