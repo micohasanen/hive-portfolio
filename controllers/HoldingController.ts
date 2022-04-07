@@ -1,7 +1,12 @@
+import { Types } from 'mongoose';
+
 import Holding from '../models/Holding';
 import ITrade from '../interfaces/ITrade';
+import IAsset from '../interfaces/IAsset';
 
 function calcRanges(array:Array<number>): any {
+  if (!array.length) return { avg: 0, low: 0, high: 0 };
+
   const sum = array.reduce((prev, curr) => prev + curr, 0);
   const avg = sum / array.length || 0;
 
@@ -11,7 +16,21 @@ function calcRanges(array:Array<number>): any {
   return { avg, low, high };
 }
 
-function parseTradeLog(trades:Array<any>): any {
+function calculateYieldTotal(trades:Array<any>, apy:number): any {
+  let totalYield = 0;
+  trades.forEach((trade) => {
+    if (!trade.daysHeld) return;
+    const yearlyYield = (trade.quantity / 100) * apy;
+    const dailyYield = yearlyYield / 365;
+
+    trade.yielded = dailyYield * trade.daysHeld;
+    totalYield += trade.yielded;
+  });
+
+  return totalYield;
+}
+
+function parseTradeLog(trades:Array<any>, asset:IAsset): any {
   const sorted = trades.sort((a, b) => {
     if (b.timestamp > a.timestamp) return -1;
     if (a.timestamp > b.timestamp) return 1;
@@ -27,6 +46,7 @@ function parseTradeLog(trades:Array<any>): any {
     totalSold: 0,
     initialValue: 0,
     totalTrades: 0,
+    totalYield: 0,
   };
 
   sorted.forEach((trade) => {
@@ -36,10 +56,19 @@ function parseTradeLog(trades:Array<any>): any {
       quantityTotal += trade.quantity;
       buyPrices.push(trade.price);
 
+      const buyTime = new Date(trade.timestamp).getTime();
+      const now = new Date().getTime();
+      const diff = now - buyTime;
+      const days = Math.ceil(diff / (1000 * 3600 * 24));
+
+      trade.daysHeld = days;
+
       metrics.totalBought += trade.quantity * trade.price;
     } else if (trade.side === 'sell') {
       quantityTotal -= trade.quantity;
       sellPrices.push(trade.price);
+
+      // TO DO: subtract amount from previous buys
 
       metrics.totalSold += trade.quantity * trade.price;
     }
@@ -47,6 +76,11 @@ function parseTradeLog(trades:Array<any>): any {
 
   const buyRange = calcRanges(buyPrices);
   const sellRange = calcRanges(sellPrices);
+
+  if (asset.yield) {
+    const totalYield = calculateYieldTotal(sorted, asset.yield);
+    metrics.totalYield = totalYield;
+  }
 
   metrics.initialValue = metrics.totalBought - metrics.totalSold;
 
@@ -67,17 +101,22 @@ function calcGrowth(initial:number, current:number): any {
   };
 }
 
-async function sync(assetId:string): Promise<any> {
+async function sync(assetId:Types.ObjectId): Promise<any> {
   try {
-    const holding = await Holding.findOne({ assetId }).populate('trades').exec();
-    if (!holding) throw new Error('No holding found');
+    const holding = await Holding.findOne({ assetId }).populate('trades').populate('asset').exec();
+    if (!holding) return Promise.resolve('No holding found');
 
     if (!holding.trades) holding.trades = [];
-    const values = parseTradeLog(holding.trades);
+    // @ts-ignore
+    const values = parseTradeLog(holding.trades, holding.asset);
     holding.quantity = values.quantityTotal;
     holding.buyRange = values.buyRange;
     holding.sellRange = values.sellRange;
     holding.metrics = values.metrics;
+    // @ts-ignore
+    holding.currentValue = (holding.quantity * holding.asset.currentPrice);
+    // @ts-ignore
+    holding.currentValue += values.metrics.totalYield * holding.asset.currentPrice;
 
     const growth = calcGrowth(holding.metrics?.initialValue || 0, holding.currentValue || 0);
 
@@ -96,7 +135,7 @@ async function sync(assetId:string): Promise<any> {
 }
 
 async function logTrade(trade:ITrade): Promise<any> {
-  const holding = await Holding.findOne({ assetId: trade.assetId }).populate('trades').exec()
+  const holding = await Holding.findOne({ assetId: trade.assetId }).populate('trades').populate('asset').exec()
   || new Holding({ assetId: trade.assetId });
 
   if (!holding.trades) holding.trades = [];
@@ -109,22 +148,11 @@ async function logTrade(trade:ITrade): Promise<any> {
   return Promise.resolve(holding);
 }
 
-async function logPrice(id:string, price:number): Promise<any> {
+async function logPrice(id:Types.ObjectId): Promise<any> {
   try {
-    const holding = await Holding.findOne({ assetId: id }).exec();
-    if (!holding) throw new Error('No Holding found');
+    sync(id);
 
-    holding.currentValue = holding.quantity * price;
-    const growth = calcGrowth(holding.metrics?.initialValue || 0, holding.currentValue || 0);
-
-    // @ts-ignore
-    holding.metrics.growthPercentage = growth.percentage;
-    // @ts-ignore
-    holding.metrics.growthValue = growth.increase;
-
-    await holding?.save();
-
-    return Promise.resolve(holding);
+    return Promise.resolve(true);
   } catch (error) {
     return Promise.reject(error);
   }

@@ -10,6 +10,8 @@ import Coingecko from './Coingecko';
 // Controllers
 import PriceController from '../controllers/PriceController';
 import HoldingController from '../controllers/HoldingController';
+// @ts-ignore
+import { createSnapshot } from '../controllers/TreasuryController';
 
 const agenda = new Agenda({ db: { address: config.mongoConnection } });
 
@@ -27,7 +29,7 @@ agenda.define('fetch latest prices', async () => {
     asset.change24h = marketData.usd_24h_change;
     await asset.save();
 
-    HoldingController.logPrice(asset.id, price);
+    HoldingController.logPrice(asset._id);
 
     PriceController.logPrice({
       assetId: asset.id,
@@ -39,11 +41,23 @@ agenda.define('fetch latest prices', async () => {
   });
 });
 
+agenda.define('treasury snapshot', async () => {
+  createSnapshot();
+});
+
 async function init() {
   await agenda.start();
   await agenda.every('1 hours', 'fetch latest prices');
+  await agenda.every('12 hours', 'treasury snapshot');
+  await agenda.now('fetch latest prices', {});
+  // await agenda.now('treasury snapshot', {});
 
   console.log('✨ Agenda Inited');
 }
 
-export default init;
+async function syncPrices() {
+  await agenda.now('fetch latest prices', {});
+  await agenda.now('treasury snapshot', {});
+}
+
+export { init, syncPrices };

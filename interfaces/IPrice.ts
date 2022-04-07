@@ -1,5 +1,5 @@
 interface Price {
-  assetId: string;
+  assetId: any;
   timestamp: Date;
   price: number;
   volume?: number;

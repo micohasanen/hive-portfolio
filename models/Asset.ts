@@ -22,7 +22,7 @@ const AssetSchema = new Schema<IAsset>({
   marketCap: Number,
   change24h: Number,
   yield: Number,
-  autoCompound: {
+  isApy: {
     type: Boolean,
     default: false,
   },

@@ -11,12 +11,13 @@ interface Metrics {
   totalSold?: number;
   initialValue?: number;
   totalTrades?: number;
+  yieldTotal?: number;
   growthPercentage?: number;
   growthValue?: number;
 }
 
 interface Holding {
-  assetId: string;
+  assetId: any;
   currentPrice?: number;
   quantity: number;
   buyRange?: Range;

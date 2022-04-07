@@ -63,6 +63,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 router.put('/:id/sync', async (req: Request, res: Response) => {
   try {
+    // @ts-ignore
     HoldingController.sync(req.params.id);
     return res.sendStatus(200);
   } catch (error) {

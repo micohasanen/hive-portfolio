@@ -6,7 +6,7 @@ interface Asset {
   category?: string;
   id: string;
   yield?: number;
-  autoCompound?: boolean;
+  isApy?: boolean;
   currentPrice?: number;
   marketCap?: number;
   change24h?: number;

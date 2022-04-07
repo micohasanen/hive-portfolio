@@ -6,7 +6,7 @@ interface Trade {
   price: number;
   quantity: number;
   timestamp: Date;
-  assetId: string;
+  assetId: any;
   createdAt?: Date;
   updatedAt: Date;
 }

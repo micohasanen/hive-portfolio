@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 import IHolding from '../interfaces/IHolding';
 
 const RangeSchema = {
@@ -9,7 +9,7 @@ const RangeSchema = {
 
 const HoldingSchema = new Schema<IHolding>({
   assetId: {
-    type: String,
+    type: Types.ObjectId,
     required: true,
     index: true,
   },
@@ -33,7 +33,7 @@ const HoldingSchema = new Schema<IHolding>({
 
 HoldingSchema.virtual('asset', {
   localField: 'assetId',
-  foreignField: 'id',
+  foreignField: '_id',
   ref: 'Asset',
   justOne: true,
 });

@@ -30,5 +30,6 @@ module.exports = {
     ],
     'no-underscore-dangle': ['error', { allow: ['_id'] }],
     'no-param-reassign': 0,
+    'import/prefer-default-export': 'off',
   },
 };

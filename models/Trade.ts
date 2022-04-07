@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+import { Schema, model, Types } from 'mongoose';
 import ITrade from '../interfaces/ITrade';
 
 // Controllers
@@ -19,7 +19,8 @@ const AssetSchema = new Schema<ITrade>({
   },
   timestamp: Date,
   assetId: {
-    type: String,
+    type: Types.ObjectId,
+    ref: 'Asset',
     required: true,
   },
 }, { timestamps: true });

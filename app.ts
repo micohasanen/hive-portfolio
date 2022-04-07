@@ -6,7 +6,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 
 import config from './config';
-import initJobScheduler from './providers/Agenda';
+import { init } from './providers/Agenda';
 
 // Routes
 import assetRouter from './routes/assets';
@@ -33,7 +33,7 @@ app.use(`/${config.apiPrefix}/trades`, tradesRouter);
 app.use(`/${config.apiPrefix}/holdings`, holdingsRouter);
 
 app.listen(PORT, () => {
-  initJobScheduler();
+  init();
   console.log('🚀 Hive Portfolio running on port', PORT);
 });
 
