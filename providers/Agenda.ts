@@ -1,4 +1,5 @@
 import { Agenda } from 'agenda';
+import { startSession } from 'mongoose';
 import config from '../config';
 
 // Models
@@ -16,7 +17,8 @@ import { createSnapshot } from '../controllers/TreasuryController';
 const agenda = new Agenda({ db: { address: config.mongoConnection } });
 
 agenda.define('fetch latest prices', async () => {
-  const assets = await Asset.find();
+  const session = await startSession();
+  const assets = await Asset.find().session(session).exec();
 
   assets.forEach(async (asset) => {
     const marketData = await Coingecko.fetchLatest(asset.id);
@@ -39,6 +41,8 @@ agenda.define('fetch latest prices', async () => {
       volume,
     });
   });
+
+  session.endSession();
 });
 
 agenda.define('treasury snapshot', async () => {
@@ -47,7 +51,7 @@ agenda.define('treasury snapshot', async () => {
 
 async function init() {
   await agenda.start();
-  await agenda.every('1 hours', 'fetch latest prices');
+  // await agenda.every('1 hours', 'fetch latest prices');
   await agenda.every('12 hours', 'treasury snapshot');
   await agenda.now('fetch latest prices', {});
   // await agenda.now('treasury snapshot', {});

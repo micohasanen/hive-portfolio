@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { Types, startSession } from 'mongoose';
 
 import Holding from '../models/Holding';
 import ITrade from '../interfaces/ITrade';
@@ -103,7 +103,13 @@ function calcGrowth(initial:number, current:number): any {
 
 async function sync(assetId:Types.ObjectId): Promise<any> {
   try {
-    const holding = await Holding.findOne({ assetId }).populate('trades').populate('asset').exec();
+    const session = await startSession();
+
+    const holding = await Holding.findOne({ assetId })
+      .populate('trades')
+      .populate('asset')
+      .session(session)
+      .exec();
     if (!holding) return Promise.resolve('No holding found');
 
     if (!holding.trades) holding.trades = [];
@@ -126,7 +132,10 @@ async function sync(assetId:Types.ObjectId): Promise<any> {
     holding.metrics.growthValue = growth.increase;
 
     holding.markModified('metrics');
+
     await holding.save();
+
+    session.endSession();
 
     return Promise.resolve(holding);
   } catch (error) {

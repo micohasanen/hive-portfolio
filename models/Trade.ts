@@ -4,7 +4,7 @@ import ITrade from '../interfaces/ITrade';
 // Controllers
 import HoldingController from '../controllers/HoldingController';
 
-const AssetSchema = new Schema<ITrade>({
+const TradeSchema = new Schema<ITrade>({
   side: {
     type: String,
     required: true,
@@ -26,8 +26,8 @@ const AssetSchema = new Schema<ITrade>({
 }, { timestamps: true });
 
 /* eslint func-names: ["error", "never"] */
-AssetSchema.post('save', function () {
+TradeSchema.post('save', function () {
   HoldingController.logTrade(this);
 });
 
-export default model<ITrade>('Trade', AssetSchema);
+export default model<ITrade>('Trade', TradeSchema);

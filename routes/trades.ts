@@ -13,10 +13,10 @@ router.get('/', async (req: Request, res: Response) => {
     const page = Number(req.query.page) || 0;
     const size = Number(req.query.size) || 10;
 
-    const total = Trade.countDocuments();
+    const total = await Trade.countDocuments();
 
-    const trades = await Trade
-      .find()
+    const trades = await Trade.find()
+      .lean()
       .limit(size)
       .skip(page * size)
       .exec();
@@ -28,6 +28,7 @@ router.get('/', async (req: Request, res: Response) => {
       results: trades,
     });
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: 'Something went wrong.' });
   }
 });
