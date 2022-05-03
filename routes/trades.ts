@@ -45,14 +45,15 @@ router.post('/', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const timestamp = new Date(req.body.timestamp) || new Date();
+    const timestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const trade = new Trade({ ...req.body, timestamp });
-    await trade.save();
+    // await trade.save();
 
-    syncPrices();
+    // syncPrices();
 
     return res.status(200).send(trade);
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ message: 'Something went wrong.' });
   }
 });
