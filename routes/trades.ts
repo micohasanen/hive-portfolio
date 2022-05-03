@@ -47,9 +47,9 @@ router.post('/', [
 
     const timestamp = req.body.timestamp ? new Date(req.body.timestamp) : new Date();
     const trade = new Trade({ ...req.body, timestamp });
-    // await trade.save();
+    await trade.save();
 
-    // syncPrices();
+    syncPrices();
 
     return res.status(200).send(trade);
   } catch (error) {
